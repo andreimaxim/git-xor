@@ -44,10 +44,7 @@ This produces an `[xor]` section in your gitconfig:
 
 This project uses [Vouch](https://github.com/mitchellh/vouch) to manage contributor trust.
 New contributors must be vouched for by a maintainer before their issues or PRs are accepted.
-
-To vouch for a contributor, a maintainer comments `vouch` on one of their issues. To denounce
-a bad actor, comment `denounce`. The vouched contributors list lives in
-[`.github/VOUCHED.td`](.github/VOUCHED.td).
+The vouched contributors list lives in [`.github/VOUCHED.td`](.github/VOUCHED.td).
 
 ### Development
 
