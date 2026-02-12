@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readGitconfig, getMergeBase, getLog, getCommitFiles, getCommitSubject } from "./git.js"
+import { readGitconfig, getMergeBase, getLog, getCommitSubject } from "./git.js"
 import { Commit } from "./commit.js"
 import { xor } from "./xor.js"
 import { formatReport } from "./report.js"
@@ -50,8 +50,8 @@ const mergeBase = getMergeBase(args.ours, args.theirs)
 const mergeBaseShort = mergeBase.slice(0, 7)
 const mergeBaseSubject = getCommitSubject(mergeBase)
 
-const oursCommits = Commit.fromLog(getLog(mergeBase, args.ours), getCommitFiles)
-const theirsCommits = Commit.fromLog(getLog(mergeBase, args.theirs), getCommitFiles)
+const oursCommits = Commit.fromLog(getLog(mergeBase, args.ours))
+const theirsCommits = Commit.fromLog(getLog(mergeBase, args.theirs))
 
 const result = xor(oursCommits, theirsCommits)
 

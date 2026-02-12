@@ -4,66 +4,73 @@ import { Commit } from "../src/commit.js"
 
 const PROJ = /PROJ-\d+/
 
-function stubFiles(mapping) {
-  return (hash) => mapping[hash] ?? []
+const HASH_A = "a".repeat(40)
+const HASH_B = "b".repeat(40)
+const PARENT = "0".repeat(40)
+const PARENT2 = "1".repeat(40)
+
+function record(hash, parents, subject, body = "") {
+  return `${hash}\x00${parents}\x00${subject}\x00${body}\x1e`
 }
 
 describe("Commit.sameAs", () => {
-  test("same subject, overlapping files → true", () => {
-    const a = new Commit("aaa", "Fix login", ["src/auth.ts"])
-    const b = new Commit("bbb", "Fix login", ["src/auth.ts"])
+  test("same subject → true", () => {
+    const a = new Commit("aaa", "Fix login")
+    const b = new Commit("bbb", "Fix login")
     assert.strictEqual(a.sameAs(b), true)
-  })
-
-  test("same subject, no files in common → false", () => {
-    const a = new Commit("aaa", "Fix login", ["src/auth.ts"])
-    const b = new Commit("bbb", "Fix login", ["src/api.ts"])
-    assert.strictEqual(a.sameAs(b), false)
   })
 
   test("different subject → false", () => {
-    const a = new Commit("aaa", "Fix login", ["src/auth.ts"])
-    const b = new Commit("bbb", "Fix logout", ["src/auth.ts"])
+    const a = new Commit("aaa", "Fix login")
+    const b = new Commit("bbb", "Fix logout")
     assert.strictEqual(a.sameAs(b), false)
   })
 
-  test("same subject, partial file overlap → true", () => {
-    const a = new Commit("aaa", "Fix login", ["src/auth.ts", "src/utils.ts"])
-    const b = new Commit("bbb", "Fix login", ["src/auth.ts", "src/api.ts"])
+  test("identical hash → true", () => {
+    const a = new Commit("aaa", "Fix login")
+    const b = new Commit("aaa", "Fix logout")
     assert.strictEqual(a.sameAs(b), true)
   })
 
-  test("identical hash → true", () => {
-    const a = new Commit("aaa", "Fix login", ["src/auth.ts"])
-    const b = new Commit("aaa", "Fix logout", ["src/api.ts"])
-    assert.strictEqual(a.sameAs(b), true)
+  test("this was cherry-picked from other → true", () => {
+    const original = new Commit(HASH_A, "Fix login")
+    const picked = new Commit(HASH_B, "Fix login", HASH_A)
+    assert.strictEqual(picked.sameAs(original), true)
+  })
+
+  test("other was cherry-picked from this → true", () => {
+    const original = new Commit(HASH_A, "Fix login")
+    const picked = new Commit(HASH_B, "Fix login", HASH_A)
+    assert.strictEqual(original.sameAs(picked), true)
+  })
+
+  test("cherry-pick match overrides different subject", () => {
+    const original = new Commit(HASH_A, "Fix login")
+    const picked = new Commit(HASH_B, "Fix login (amended)", HASH_A)
+    assert.strictEqual(picked.sameAs(original), true)
+  })
+
+  test("unrelated cherry-pick hash does not match", () => {
+    const a = new Commit(HASH_A, "Fix login", PARENT)
+    const b = new Commit(HASH_B, "Fix logout", PARENT2)
+    assert.strictEqual(a.sameAs(b), false)
   })
 })
 
 describe("Commit.fromLog", () => {
-  const HASH_A = "a".repeat(40)
-  const HASH_B = "b".repeat(40)
-  const PARENT = "0".repeat(40)
-  const PARENT2 = "1".repeat(40)
-
   test("parses single commit", () => {
-    const log = `${HASH_A} ${PARENT} Fix login`
-    const files = stubFiles({ [HASH_A]: ["src/auth.ts"] })
-    const commits = Commit.fromLog(log, files)
+    const log = record(HASH_A, PARENT, "Fix login")
+    const commits = Commit.fromLog(log)
 
     assert.strictEqual(commits.length, 1)
     assert.strictEqual(commits[0].hash, HASH_A)
     assert.strictEqual(commits[0].subject, "Fix login")
-    assert.deepStrictEqual(commits[0].files, ["src/auth.ts"])
+    assert.strictEqual(commits[0].cherryPickOf, undefined)
   })
 
   test("parses multiple commits", () => {
-    const log = [`${HASH_A} ${PARENT} Fix login`, `${HASH_B} ${HASH_A} Add tests`].join("\n")
-    const files = stubFiles({
-      [HASH_A]: ["src/auth.ts"],
-      [HASH_B]: ["test/auth.test.ts"]
-    })
-    const commits = Commit.fromLog(log, files)
+    const log = record(HASH_A, PARENT, "Fix login") + record(HASH_B, HASH_A, "Add tests")
+    const commits = Commit.fromLog(log)
 
     assert.strictEqual(commits.length, 2)
     assert.strictEqual(commits[0].subject, "Fix login")
@@ -71,42 +78,52 @@ describe("Commit.fromLog", () => {
   })
 
   test("skips merge commits (multiple parents)", () => {
-    const log = [
-      `${HASH_A} ${PARENT} ${PARENT2} Merge branch 'main'`,
-      `${HASH_B} ${PARENT} Real commit`
-    ].join("\n")
-    const files = stubFiles({ [HASH_B]: ["src/app.ts"] })
-    const commits = Commit.fromLog(log, files)
+    const log =
+      record(HASH_A, `${PARENT} ${PARENT2}`, "Merge branch 'main'") +
+      record(HASH_B, PARENT, "Real commit")
+    const commits = Commit.fromLog(log)
 
     assert.strictEqual(commits.length, 1)
     assert.strictEqual(commits[0].hash, HASH_B)
   })
 
   test("returns empty array for empty output", () => {
-    assert.deepStrictEqual(
-      Commit.fromLog("", () => []),
-      []
-    )
+    assert.deepStrictEqual(Commit.fromLog(""), [])
   })
 
   test("returns empty array for undefined output", () => {
-    assert.deepStrictEqual(
-      Commit.fromLog(undefined, () => []),
-      []
-    )
+    assert.deepStrictEqual(Commit.fromLog(undefined), [])
   })
 
-  test("skips blank lines", () => {
-    const log = `\n${HASH_A} ${PARENT} Fix login\n\n`
-    const files = stubFiles({ [HASH_A]: ["src/auth.ts"] })
-    const commits = Commit.fromLog(log, files)
+  test("skips blank records", () => {
+    const log = `\x1e${record(HASH_A, PARENT, "Fix login")}\x1e`
+    const commits = Commit.fromLog(log)
 
     assert.strictEqual(commits.length, 1)
+  })
+
+  test("extracts cherry-pick origin from body", () => {
+    const body = `Some context\n\n(cherry picked from commit ${HASH_B})\n`
+    const log = record(HASH_A, PARENT, "Fix login", body)
+    const commits = Commit.fromLog(log)
+
+    assert.strictEqual(commits.length, 1)
+    assert.strictEqual(commits[0].hash, HASH_A)
+    assert.strictEqual(commits[0].cherryPickOf, HASH_B)
+  })
+
+  test("no cherry-pick marker → cherryPickOf is undefined", () => {
+    const body = "Just a regular body\n"
+    const log = record(HASH_A, PARENT, "Fix login", body)
+    const commits = Commit.fromLog(log)
+
+    assert.strictEqual(commits.length, 1)
+    assert.strictEqual(commits[0].cherryPickOf, undefined)
   })
 })
 
 describe("Commit.ticketId", () => {
-  const c = (subject) => new Commit("aaa", subject, [])
+  const c = (subject) => new Commit("aaa", subject)
 
   test("brackets: [PROJ-1] Fix login → PROJ-1", () => {
     assert.strictEqual(c("[PROJ-1] Fix login").ticketId(PROJ), "PROJ-1")

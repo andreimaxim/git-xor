@@ -1,43 +1,36 @@
+const CHERRY_PICK_RE = /\(cherry picked from commit ([0-9a-f]{40})\)/
+
 export class Commit {
-  constructor(hash, subject, files) {
+  constructor(hash, subject, cherryPickOf) {
     this.hash = hash
     this.subject = subject
-    this.files = files
+    this.cherryPickOf = cherryPickOf
   }
 
-  static fromLog(logOutput, getFiles) {
+  static fromLog(logOutput) {
     if (!logOutput) return []
 
     const commits = []
-    for (const line of logOutput.split("\n")) {
-      if (!line.trim()) continue
+    for (const record of logOutput.split("\x1e")) {
+      if (!record.trim()) continue
 
-      // Parse: <hash> <parent(s)> <subject>
-      // Parents are space-separated, so merge commits have 2+ parent hashes
-      const firstSpace = line.indexOf(" ")
-      const hash = line.slice(0, firstSpace)
-      const rest = line.slice(firstSpace + 1)
+      const fields = record.split("\x00")
+      if (fields.length < 3) continue
 
-      // Find where subject starts: after all parent hashes (40-char hex each)
-      const parts = rest.split(" ")
-      const parents = []
-      let subjectStartIdx = 0
-      for (const part of parts) {
-        if (/^[0-9a-f]{40}$/.test(part)) {
-          parents.push(part)
-          subjectStartIdx += part.length + 1
-        } else {
-          break
-        }
-      }
+      const hash = fields[0].trim()
+      const parentStr = fields[1].trim()
+      const parents = parentStr ? parentStr.split(/\s+/) : []
+      const subject = fields[2]
+      const body = fields[3] || ""
 
       // Skip merge commits (multiple parents)
       if (parents.length > 1) continue
 
-      const subject = rest.slice(subjectStartIdx)
-      const files = getFiles(hash)
+      // Extract cherry-pick origin from body
+      const cpMatch = body.match(CHERRY_PICK_RE)
+      const cherryPickOf = cpMatch ? cpMatch[1] : undefined
 
-      commits.push(new Commit(hash, subject, files))
+      commits.push(new Commit(hash, subject, cherryPickOf))
     }
 
     return commits
@@ -45,8 +38,9 @@ export class Commit {
 
   sameAs(other) {
     if (this.hash === other.hash) return true
-    if (this.subject !== other.subject) return false
-    return this.files.some((f) => other.files.includes(f))
+    if (this.cherryPickOf && this.cherryPickOf === other.hash) return true
+    if (other.cherryPickOf && other.cherryPickOf === this.hash) return true
+    return this.subject === other.subject
   }
 
   ticketId(pattern) {
