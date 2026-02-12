@@ -6,8 +6,13 @@ import { formatReport } from "../src/report.js"
 describe("formatReport – summary section", () => {
   test("shows merge-base, commit counts, and matched count", () => {
     const result = {
-      matched: [[new Commit("a1", "Fix login"), new Commit("b1", "Fix login")]],
-      onlyInOurs: [new Commit("a2", "Only ours")],
+      matched: [
+        [
+          new Commit({ hash: "a1", subject: "Fix login" }),
+          new Commit({ hash: "b1", subject: "Fix login" })
+        ]
+      ],
+      onlyInOurs: [new Commit({ hash: "a2", subject: "Only ours" })],
       onlyInTheirs: [],
       warnings: []
     }
@@ -57,8 +62,8 @@ describe("formatReport – commits section", () => {
   test("lists unmatched commits grouped by branch", () => {
     const result = {
       matched: [],
-      onlyInOurs: [new Commit("aaa1111", "Our change")],
-      onlyInTheirs: [new Commit("bbb2222", "Their change")],
+      onlyInOurs: [new Commit({ hash: "aaa1111", subject: "Our change" })],
+      onlyInTheirs: [new Commit({ hash: "bbb2222", subject: "Their change" })],
       warnings: []
     }
 
@@ -81,7 +86,12 @@ describe("formatReport – commits section", () => {
 
   test("does not list matched commits individually", () => {
     const result = {
-      matched: [[new Commit("a1", "Fix login"), new Commit("b1", "Fix login")]],
+      matched: [
+        [
+          new Commit({ hash: "a1", subject: "Fix login" }),
+          new Commit({ hash: "b1", subject: "Fix login" })
+        ]
+      ],
       onlyInOurs: [],
       onlyInTheirs: [],
       warnings: []
@@ -109,7 +119,7 @@ describe("formatReport – tickets section", () => {
   test("not shown when ticket config is missing", () => {
     const result = {
       matched: [],
-      onlyInOurs: [new Commit("a1", "[PROJ-100] Fix")],
+      onlyInOurs: [new Commit({ hash: "a1", subject: "[PROJ-100] Fix" })],
       onlyInTheirs: [],
       warnings: []
     }
@@ -131,9 +141,9 @@ describe("formatReport – tickets section", () => {
     const result = {
       matched: [],
       onlyInOurs: [
-        new Commit("a1", "[PROJ-200] Fix login"),
-        new Commit("a2", "[PROJ-100] Add tests"),
-        new Commit("a3", "[PROJ-200] Fix login again")
+        new Commit({ hash: "a1", subject: "[PROJ-200] Fix login" }),
+        new Commit({ hash: "a2", subject: "[PROJ-100] Add tests" }),
+        new Commit({ hash: "a3", subject: "[PROJ-200] Fix login again" })
       ],
       onlyInTheirs: [],
       warnings: []
@@ -165,8 +175,8 @@ describe("formatReport – tickets section", () => {
     const result = {
       matched: [],
       onlyInOurs: [
-        new Commit("aaa1111", "[PROJ-300] Has ticket"),
-        new Commit("bbb2222", "No ticket here")
+        new Commit({ hash: "aaa1111", subject: "[PROJ-300] Has ticket" }),
+        new Commit({ hash: "bbb2222", subject: "No ticket here" })
       ],
       onlyInTheirs: [],
       warnings: []

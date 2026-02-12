@@ -12,68 +12,133 @@ const PARENT2 = "1".repeat(40)
 const AUTHOR_NAME = "Alice"
 const AUTHOR_EMAIL = "alice@example.com"
 const AUTHOR_DATE = "2025-01-15T10:30:00+00:00"
+
 function record(hash, parents, subject, body = "") {
   return `${hash}\x00${parents}\x00${subject}\x00${AUTHOR_NAME}\x00${AUTHOR_EMAIL}\x00${AUTHOR_DATE}\x00${body}\x1e`
 }
 
 describe("Commit.sameAs", () => {
   test("same subject + same author → true", () => {
-    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
-    const b = new Commit("bbb", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
+    const a = new Commit({
+      hash: "aaa",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-01-15"
+    })
+    const b = new Commit({
+      hash: "bbb",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-01-15"
+    })
     assert.strictEqual(a.sameAs(b), true)
   })
 
   test("same subject + different author name → false", () => {
-    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
-    const b = new Commit("bbb", "Fix login", undefined, "Bob", "alice@x.com", "2025-01-15")
+    const a = new Commit({
+      hash: "aaa",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-01-15"
+    })
+    const b = new Commit({
+      hash: "bbb",
+      subject: "Fix login",
+      authorName: "Bob",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-01-15"
+    })
     assert.strictEqual(a.sameAs(b), false)
   })
 
   test("same subject + different author email → false", () => {
-    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
-    const b = new Commit("bbb", "Fix login", undefined, "Alice", "bob@x.com", "2025-01-15")
+    const a = new Commit({
+      hash: "aaa",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-01-15"
+    })
+    const b = new Commit({
+      hash: "bbb",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "bob@x.com",
+      authorDate: "2025-01-15"
+    })
     assert.strictEqual(a.sameAs(b), false)
   })
 
   test("same subject + different author date → false", () => {
-    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
-    const b = new Commit("bbb", "Fix login", undefined, "Alice", "alice@x.com", "2025-06-20")
+    const a = new Commit({
+      hash: "aaa",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-01-15"
+    })
+    const b = new Commit({
+      hash: "bbb",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "alice@x.com",
+      authorDate: "2025-06-20"
+    })
     assert.strictEqual(a.sameAs(b), false)
   })
 
   test("different subject → false", () => {
-    const a = new Commit("aaa", "Fix login")
-    const b = new Commit("bbb", "Fix logout")
+    const a = new Commit({ hash: "aaa", subject: "Fix login" })
+    const b = new Commit({ hash: "bbb", subject: "Fix logout" })
     assert.strictEqual(a.sameAs(b), false)
   })
 
   test("identical hash → true regardless of other fields", () => {
-    const a = new Commit("aaa", "Fix login", undefined, "Alice", "a@x.com", "2025-01-15")
-    const b = new Commit("aaa", "Fix logout", undefined, "Bob", "b@x.com", "2025-06-20")
+    const a = new Commit({
+      hash: "aaa",
+      subject: "Fix login",
+      authorName: "Alice",
+      authorEmail: "a@x.com",
+      authorDate: "2025-01-15"
+    })
+    const b = new Commit({
+      hash: "aaa",
+      subject: "Fix logout",
+      authorName: "Bob",
+      authorEmail: "b@x.com",
+      authorDate: "2025-06-20"
+    })
     assert.strictEqual(a.sameAs(b), true)
   })
 
   test("this was cherry-picked from other → true", () => {
-    const original = new Commit(HASH_A, "Fix login")
-    const picked = new Commit(HASH_B, "Fix login", HASH_A)
+    const original = new Commit({ hash: HASH_A, subject: "Fix login" })
+    const picked = new Commit({ hash: HASH_B, subject: "Fix login", cherryPickOf: HASH_A })
     assert.strictEqual(picked.sameAs(original), true)
   })
 
   test("other was cherry-picked from this → true", () => {
-    const original = new Commit(HASH_A, "Fix login")
-    const picked = new Commit(HASH_B, "Fix login", HASH_A)
+    const original = new Commit({ hash: HASH_A, subject: "Fix login" })
+    const picked = new Commit({ hash: HASH_B, subject: "Fix login", cherryPickOf: HASH_A })
     assert.strictEqual(original.sameAs(picked), true)
   })
 
   test("cherry-pick match overrides different subject", () => {
-    const original = new Commit(HASH_A, "Fix login")
-    const picked = new Commit(HASH_B, "Fix login (amended)", HASH_A)
+    const original = new Commit({ hash: HASH_A, subject: "Fix login" })
+    const picked = new Commit({
+      hash: HASH_B,
+      subject: "Fix login (amended)",
+      cherryPickOf: HASH_A
+    })
     assert.strictEqual(picked.sameAs(original), true)
   })
 
   test("unrelated cherry-pick hash does not match", () => {
-    const a = new Commit(HASH_A, "Fix login", PARENT)
-    const b = new Commit(HASH_B, "Fix logout", PARENT2)
+    const a = new Commit({ hash: HASH_A, subject: "Fix login", cherryPickOf: PARENT })
+    const b = new Commit({ hash: HASH_B, subject: "Fix logout", cherryPickOf: PARENT2 })
     assert.strictEqual(a.sameAs(b), false)
   })
 })
@@ -147,7 +212,7 @@ describe("Commit.fromLog", () => {
 })
 
 describe("Commit.ticketId", () => {
-  const c = (subject) => new Commit("aaa", subject)
+  const c = (subject) => new Commit({ hash: "aaa", subject })
 
   test("brackets: [PROJ-1] Fix login → PROJ-1", () => {
     assert.strictEqual(c("[PROJ-1] Fix login").ticketId(PROJ), "PROJ-1")
