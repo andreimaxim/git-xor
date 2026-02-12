@@ -1,24 +1,15 @@
-import type { Commit } from "./commit.ts"
-
-export interface XorResult {
-  matched: Array<[Commit, Commit]>
-  onlyInOurs: Commit[]
-  onlyInTheirs: Commit[]
-  warnings: string[]
-}
-
-export function xor(ours: Commit[], theirs: Commit[]): XorResult {
+export function xor(ours, theirs) {
   // Pass 1: Walk ours oldest-first, match against theirs
-  const consumedTheirs1 = new Set<number>()
-  const pass1Matched: Array<[Commit, Commit]> = []
-  const pass1OnlyOurs: Commit[] = []
+  const consumedTheirs1 = new Set()
+  const pass1Matched = []
+  const pass1OnlyOurs = []
 
   for (const ourCommit of ours) {
     let found = false
     for (let j = 0; j < theirs.length; j++) {
       if (consumedTheirs1.has(j)) continue
-      if (ourCommit.sameAs(theirs[j]!)) {
-        pass1Matched.push([ourCommit, theirs[j]!])
+      if (ourCommit.sameAs(theirs[j])) {
+        pass1Matched.push([ourCommit, theirs[j]])
         consumedTheirs1.add(j)
         found = true
         break
@@ -28,16 +19,16 @@ export function xor(ours: Commit[], theirs: Commit[]): XorResult {
   }
 
   // Pass 2: Walk theirs oldest-first, match against ours
-  const consumedOurs2 = new Set<number>()
-  const pass2Matched: Array<[Commit, Commit]> = []
-  const pass2OnlyTheirs: Commit[] = []
+  const consumedOurs2 = new Set()
+  const pass2Matched = []
+  const pass2OnlyTheirs = []
 
   for (const theirCommit of theirs) {
     let found = false
     for (let i = 0; i < ours.length; i++) {
       if (consumedOurs2.has(i)) continue
-      if (theirCommit.sameAs(ours[i]!)) {
-        pass2Matched.push([ours[i]!, theirCommit])
+      if (theirCommit.sameAs(ours[i])) {
+        pass2Matched.push([ours[i], theirCommit])
         consumedOurs2.add(i)
         found = true
         break
@@ -47,8 +38,8 @@ export function xor(ours: Commit[], theirs: Commit[]): XorResult {
   }
 
   // Cross-check: compare matched pairs from both passes
-  const warnings: string[] = []
-  const pass2Map = new Map<string, string>()
+  const warnings = []
+  const pass2Map = new Map()
   for (const [o, t] of pass2Matched) {
     pass2Map.set(o.hash, t.hash)
   }

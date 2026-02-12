@@ -13,20 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: lts/*
 
-      - run: bun install --frozen-lockfile
-
-      - name: Type check
-        run: bun run tsc --noEmit
+      - run: npm install
 
       - name: Lint
-        run: bun run lint
+        run: npm run lint
 
       - name: Format
-        run: bun run fmt:check
+        run: npm run fmt:check
 
       - name: Test
-        run: bun test
+        run: npm test

@@ -1,48 +1,39 @@
 # AGENTS.md
 
-Default to using Bun instead of Node.js.
-
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Use `bunx <package> <command>` instead of `npx <package> <command>`
-- Bun automatically loads .env, so don't use dotenv.
-
-## APIs
-
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Use `Bun.$` for shell commands (e.g. `await Bun.$`git log``)
-
 ## Project Structure
 
 - Source code lives in `src/`
 - Tests live in `test/`, not alongside source files
-- CLI entry point is `src/cli.ts`
+- CLI entry point is `src/cli.js`
 
 ## Testing
 
-Use `bun test` to run tests. Test files go in the `test/` directory.
+Use Node's built-in test runner. Test files go in the `test/` directory.
 
-```ts
-import { test, expect } from "bun:test"
+```js
+import { test } from "node:test"
+import assert from "node:assert/strict"
 
 test("hello world", () => {
-  expect(1).toBe(1)
+  assert.strictEqual(1, 1)
 })
 ```
+
+Commands:
+
+- `npm test` or `node --test test/` — run all tests
 
 ## Linting
 
 This project uses [oxlint](https://oxc.rs/docs/guide/usage/linter) for linting, configured in `.oxlintrc.json`.
 
-- Plugins enabled: `typescript`, `unicorn`, `import`, `oxc`
+- Plugins enabled: `unicorn`, `import`, `oxc`
 - Categories: `correctness` (error), `suspicious` (warn), `perf` (warn)
 
 Commands:
 
-- `bun run lint` — run the linter
-- `bun run lint:fix` — run the linter with auto-fix
+- `npm run lint` — run the linter
+- `npm run lint:fix` — run the linter with auto-fix
 
 ## Formatting
 
@@ -59,35 +50,33 @@ Style rules:
 
 Commands:
 
-- `bun run fmt` — format all files in place
-- `bun run fmt:check` — check formatting without writing
+- `npm run fmt` — format all files in place
+- `npm run fmt:check` — check formatting without writing
 
 All generated code must follow these formatting rules.
 
 ## Full Check
 
-Run `bun run check` to execute all checks in sequence:
+Run `npm run check` to execute all checks in sequence:
 
-1. `tsc --noEmit` — type checking
-2. `oxlint` — linting
-3. `oxfmt --check` — format verification
+1. `oxlint` — linting
+2. `oxfmt --check` — format verification
 
-Always run `bun run check` before committing to ensure code passes all checks.
+Always run `npm run check` before committing to ensure code passes all checks.
 
 ## CI
 
 GitHub Actions runs on every push to `main` and on pull requests. The workflow (`.github/workflows/ci.yml`) runs each step separately for clear failure reporting:
 
-1. Type check
-2. Lint
-3. Format check
-4. Tests
+1. Lint
+2. Format check
+3. Tests
 
 ## Publishing
 
-The CLI is published to npm as a Bun binary. Users install it with `bunx git-xor` or `bun add -g git-xor`.
+The CLI is published to npm. Users install it with `npx git-xor` or `npm install -g git-xor`.
 
-The entry point `src/cli.ts` has a `#!/usr/bin/env bun` shebang so it runs directly with Bun. Only the `src/` directory is included in the published package (`"files": ["src"]`).
+The entry point `src/cli.js` has a `#!/usr/bin/env node` shebang so it runs directly with Node.js. Only the `src/` directory is included in the published package (`"files": ["src"]`).
 
 Publishing is automated via `.github/workflows/publish.yml`:
 

@@ -24,7 +24,7 @@ git xor <our-branch> <their-branch> [--ticket-pattern 'PROJ-\d+'] \
 
 ### gitconfig
 
-For simpler interactions, you can add the ticket pattern or ticket URl to the `.git/config` file
+For simpler interactions, you can add the ticket pattern or ticket URL to the `.git/config` file
 in the project repo:
 
 ```bash
@@ -49,7 +49,7 @@ The vouched contributors list lives in [`.github/VOUCHED.td`](https://github.com
 ### Development
 
 ```bash
-bun install
-bun test
-bun run check   # type check + lint + format
+npm install
+npm test
+npm run check   # lint + format
 ```

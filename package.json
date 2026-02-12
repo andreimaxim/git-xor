@@ -4,22 +4,21 @@
   "description": "git-xor CLI",
   "license": "MIT",
   "bin": {
-    "git-xor": "src/cli.ts"
+    "git-xor": "src/cli.js"
   },
   "files": [
     "src"
   ],
   "type": "module",
-  "module": "src/cli.ts",
   "scripts": {
-    "lint": "oxlint --tsconfig=./tsconfig.json",
-    "lint:fix": "oxlint --tsconfig=./tsconfig.json --fix",
+    "test": "node --test 'test/*.test.js'",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "fmt": "oxfmt --write .",
     "fmt:check": "oxfmt --check .",
-    "check": "tsc --noEmit && oxlint --tsconfig=./tsconfig.json && oxfmt --check ."
+    "check": "oxlint && oxfmt --check ."
   },
   "devDependencies": {
-    "@types/bun": "latest",
     "oxfmt": "^0.32.0",
     "oxlint": "^1.47.0"
   }
