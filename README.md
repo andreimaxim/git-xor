@@ -24,7 +24,7 @@ git xor <our-branch> <their-branch> [--ticket-pattern 'PROJ-\d+'] \
 
 ### gitconfig
 
-For simpler interactions, you can add the ticket pattern or ticket URl to the `.gitconfig` file
+For simpler interactions, you can add the ticket pattern or ticket URl to the `.git/config` file
 in the project repo:
 
 ```bash
@@ -32,7 +32,7 @@ git config xor.ticket-pattern 'PROJ-\d+'
 git config xor.ticket-url 'https://jira.example.com/browse/{ticket}'
 ```
 
-This produces an `[xor]` section in your gitconfig:
+This produces an `[xor]` section in your `.git/config`:
 
 ```ini
 [xor]
