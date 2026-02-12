@@ -82,3 +82,15 @@ GitHub Actions runs on every push to `main` and on pull requests. The workflow (
 2. Lint
 3. Format check
 4. Tests
+
+## Publishing
+
+The CLI is published to npm as a Bun binary. Users install it with `bunx git-xor` or `bun add -g git-xor`.
+
+The entry point `src/cli.ts` has a `#!/usr/bin/env bun` shebang so it runs directly with Bun. Only the `src/` directory is included in the published package (`"files": ["src"]`).
+
+Publishing is automated via `.github/workflows/publish.yml`:
+
+1. Create a GitHub release with a semver tag (e.g. `0.1.0`)
+2. The workflow runs all checks, sets the version from the tag, and publishes to npm
+3. Requires an `NPM_TOKEN` secret in the repository settings

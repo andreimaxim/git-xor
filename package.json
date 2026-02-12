@@ -1,9 +1,14 @@
 {
   "name": "git-xor",
-  "private": true,
+  "version": "0.0.1",
+  "description": "git-xor CLI",
+  "license": "MIT",
   "bin": {
     "git-xor": "src/cli.ts"
   },
+  "files": [
+    "src"
+  ],
   "type": "module",
   "module": "src/cli.ts",
   "scripts": {
@@ -17,8 +22,5 @@
     "@types/bun": "latest",
     "oxfmt": "^0.32.0",
     "oxlint": "^1.47.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
   }
 }
