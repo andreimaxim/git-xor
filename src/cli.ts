@@ -1,9 +1,6 @@
 #!/usr/bin/env bun
 
 import { execFileSync } from "node:child_process"
-import { existsSync, readFileSync } from "node:fs"
-import { resolve } from "node:path"
-import { homedir } from "node:os"
 import { Commit } from "./commit.ts"
 import { xor } from "./xor.ts"
 import type { XorResult } from "./xor.ts"
@@ -165,42 +162,22 @@ interface XorConfig {
   ticketUrl?: string
 }
 
-function parseGitconfig(content: string): XorConfig {
+function readGitconfig(): XorConfig {
   const config: XorConfig = {}
-  let inXorSection = false
 
-  for (const line of content.split("\n")) {
-    const trimmed = line.trim()
-    if (trimmed.startsWith("[")) {
-      inXorSection = trimmed.toLowerCase() === "[xor]"
-      continue
-    }
-    if (!inXorSection) continue
+  try {
+    config.ticketPattern = git("config", "--get", "xor.ticket-pattern")
+  } catch {
+    // Key not set
+  }
 
-    const match = trimmed.match(/^([\w-]+)\s*=\s*(.+)$/)
-    if (!match) continue
-
-    const [, key, value] = match
-    const cleaned = value!.trim()
-    if (key === "ticket-pattern") config.ticketPattern = cleaned
-    else if (key === "ticket-url") config.ticketUrl = cleaned
+  try {
+    config.ticketUrl = git("config", "--get", "xor.ticket-url")
+  } catch {
+    // Key not set
   }
 
   return config
-}
-
-function readGitconfig(): XorConfig {
-  const paths = [resolve(".git/config"), resolve(homedir(), ".gitconfig")]
-
-  for (const p of paths) {
-    if (existsSync(p)) {
-      const content = readFileSync(p, "utf-8")
-      const config = parseGitconfig(content)
-      if (config.ticketPattern || config.ticketUrl) return config
-    }
-  }
-
-  return {}
 }
 
 // ── Arg parsing ──────────────────────────────────────────────────
