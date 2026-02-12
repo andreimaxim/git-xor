@@ -104,6 +104,35 @@ describe("xor – cherry-pick matching", () => {
   })
 })
 
+describe("xor – author-aware matching", () => {
+  test("same subject + same author → matched", () => {
+    const ours = [new Commit("a1", "Fix typo", undefined, "Alice", "a@x.com", "2025-01-15")]
+    const theirs = [new Commit("b1", "Fix typo", undefined, "Alice", "a@x.com", "2025-01-15")]
+    const result = xor(ours, theirs)
+    assert.strictEqual(result.matched.length, 1)
+    assert.strictEqual(result.onlyInOurs.length, 0)
+    assert.strictEqual(result.onlyInTheirs.length, 0)
+  })
+
+  test("same subject + different author → not matched", () => {
+    const ours = [new Commit("a1", "Fix typo", undefined, "Alice", "a@x.com", "2025-01-15")]
+    const theirs = [new Commit("b1", "Fix typo", undefined, "Bob", "b@x.com", "2025-06-20")]
+    const result = xor(ours, theirs)
+    assert.strictEqual(result.matched.length, 0)
+    assert.strictEqual(result.onlyInOurs.length, 1)
+    assert.strictEqual(result.onlyInTheirs.length, 1)
+  })
+
+  test("same subject + same author but different date → not matched", () => {
+    const ours = [new Commit("a1", "Fix typo", undefined, "Alice", "a@x.com", "2025-01-15")]
+    const theirs = [new Commit("b1", "Fix typo", undefined, "Alice", "a@x.com", "2025-06-20")]
+    const result = xor(ours, theirs)
+    assert.strictEqual(result.matched.length, 0)
+    assert.strictEqual(result.onlyInOurs.length, 1)
+    assert.strictEqual(result.onlyInTheirs.length, 1)
+  })
+})
+
 describe("xor – edge cases", () => {
   test("ours empty → everything in onlyInTheirs", () => {
     const theirs = [new Commit("b1", "Fix login")]

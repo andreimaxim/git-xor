@@ -9,15 +9,36 @@ const HASH_B = "b".repeat(40)
 const PARENT = "0".repeat(40)
 const PARENT2 = "1".repeat(40)
 
+const AUTHOR_NAME = "Alice"
+const AUTHOR_EMAIL = "alice@example.com"
+const AUTHOR_DATE = "2025-01-15T10:30:00+00:00"
 function record(hash, parents, subject, body = "") {
-  return `${hash}\x00${parents}\x00${subject}\x00${body}\x1e`
+  return `${hash}\x00${parents}\x00${subject}\x00${AUTHOR_NAME}\x00${AUTHOR_EMAIL}\x00${AUTHOR_DATE}\x00${body}\x1e`
 }
 
 describe("Commit.sameAs", () => {
-  test("same subject → true", () => {
-    const a = new Commit("aaa", "Fix login")
-    const b = new Commit("bbb", "Fix login")
+  test("same subject + same author → true", () => {
+    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
+    const b = new Commit("bbb", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
     assert.strictEqual(a.sameAs(b), true)
+  })
+
+  test("same subject + different author name → false", () => {
+    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
+    const b = new Commit("bbb", "Fix login", undefined, "Bob", "alice@x.com", "2025-01-15")
+    assert.strictEqual(a.sameAs(b), false)
+  })
+
+  test("same subject + different author email → false", () => {
+    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
+    const b = new Commit("bbb", "Fix login", undefined, "Alice", "bob@x.com", "2025-01-15")
+    assert.strictEqual(a.sameAs(b), false)
+  })
+
+  test("same subject + different author date → false", () => {
+    const a = new Commit("aaa", "Fix login", undefined, "Alice", "alice@x.com", "2025-01-15")
+    const b = new Commit("bbb", "Fix login", undefined, "Alice", "alice@x.com", "2025-06-20")
+    assert.strictEqual(a.sameAs(b), false)
   })
 
   test("different subject → false", () => {
@@ -26,9 +47,9 @@ describe("Commit.sameAs", () => {
     assert.strictEqual(a.sameAs(b), false)
   })
 
-  test("identical hash → true", () => {
-    const a = new Commit("aaa", "Fix login")
-    const b = new Commit("aaa", "Fix logout")
+  test("identical hash → true regardless of other fields", () => {
+    const a = new Commit("aaa", "Fix login", undefined, "Alice", "a@x.com", "2025-01-15")
+    const b = new Commit("aaa", "Fix logout", undefined, "Bob", "b@x.com", "2025-06-20")
     assert.strictEqual(a.sameAs(b), true)
   })
 
@@ -58,7 +79,7 @@ describe("Commit.sameAs", () => {
 })
 
 describe("Commit.fromLog", () => {
-  test("parses single commit", () => {
+  test("parses single commit with author fields", () => {
     const log = record(HASH_A, PARENT, "Fix login")
     const commits = Commit.fromLog(log)
 
@@ -66,6 +87,9 @@ describe("Commit.fromLog", () => {
     assert.strictEqual(commits[0].hash, HASH_A)
     assert.strictEqual(commits[0].subject, "Fix login")
     assert.strictEqual(commits[0].cherryPickOf, undefined)
+    assert.strictEqual(commits[0].authorName, AUTHOR_NAME)
+    assert.strictEqual(commits[0].authorEmail, AUTHOR_EMAIL)
+    assert.strictEqual(commits[0].authorDate, AUTHOR_DATE)
   })
 
   test("parses multiple commits", () => {

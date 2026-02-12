@@ -33,7 +33,12 @@ export function getMergeBase(ours, theirs) {
 
 export function getLog(base, branch) {
   try {
-    return git("log", "--reverse", "--format=%H%x00%P%x00%s%x00%b%x1e", `${base}..${branch}`)
+    return git(
+      "log",
+      "--reverse",
+      "--format=%H%x00%P%x00%s%x00%an%x00%ae%x00%aI%x00%b%x1e",
+      `${base}..${branch}`
+    )
   } catch {
     console.error(`Error: branch '${branch}' does not exist`)
     process.exit(1)
