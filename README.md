@@ -7,6 +7,10 @@ the results as ticket URLs.
 When installed, it's available as `git xor` because git automatically discovers
 executables named `git-<name>` on `$PATH`.
 
+> [!NOTE]
+> This project was built with the help of LLMs. All code is reviewed and vouched for by
+> a human maintainer before merging. See [Contributing](#contributing) for details.
+
 ## Usage
 
 ```bash
@@ -20,8 +24,35 @@ git xor <our-branch> <their-branch> [--ticket-pattern 'PROJ-\d+'] \
 
 ### gitconfig
 
+For simpler interactions, you can add the ticket pattern or ticket URl to the `.gitconfig` file
+in the project repo:
+
+```bash
+git config xor.ticket-pattern 'PROJ-\d+'
+git config xor.ticket-url 'https://jira.example.com/browse/{ticket}'
+```
+
+This produces an `[xor]` section in your gitconfig:
+
 ```ini
 [xor]
     ticket-pattern = PROJ-\\d+
     ticket-url = https://jira.example.com/browse/{ticket}
+```
+
+## Contributing
+
+This project uses [Vouch](https://github.com/mitchellh/vouch) to manage contributor trust.
+New contributors must be vouched for by a maintainer before their issues or PRs are accepted.
+
+To vouch for a contributor, a maintainer comments `vouch` on one of their issues. To denounce
+a bad actor, comment `denounce`. The vouched contributors list lives in
+[`.github/VOUCHED.td`](.github/VOUCHED.td).
+
+### Development
+
+```bash
+bun install
+bun test
+bun run check   # type check + lint + format
 ```
