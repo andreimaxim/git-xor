@@ -73,3 +73,12 @@ Run `bun run check` to execute all checks in sequence:
 3. `oxfmt --check` — format verification
 
 Always run `bun run check` before committing to ensure code passes all checks.
+
+## CI
+
+GitHub Actions runs on every push to `main` and on pull requests. The workflow (`.github/workflows/ci.yml`) runs each step separately for clear failure reporting:
+
+1. Type check
+2. Lint
+3. Format check
+4. Tests
