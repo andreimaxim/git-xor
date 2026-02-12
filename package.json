@@ -1,0 +1,24 @@
+{
+  "name": "git-xor",
+  "private": true,
+  "bin": {
+    "git-xor": "src/cli.ts"
+  },
+  "type": "module",
+  "module": "src/cli.ts",
+  "scripts": {
+    "lint": "oxlint --tsconfig=./tsconfig.json",
+    "lint:fix": "oxlint --tsconfig=./tsconfig.json --fix",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "check": "tsc --noEmit && oxlint --tsconfig=./tsconfig.json && oxfmt --check ."
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxfmt": "^0.32.0",
+    "oxlint": "^1.47.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
