@@ -3,9 +3,6 @@
   "version": "0.0.5",
   "description": "git-xor CLI",
   "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
   "bin": {
     "git-xor": "src/cli.js"
   },
@@ -13,6 +10,9 @@
     "src"
   ],
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "node --test 'test/*.test.js'",
     "lint": "oxlint",
