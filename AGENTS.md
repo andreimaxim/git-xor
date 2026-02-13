@@ -74,7 +74,7 @@ GitHub Actions runs on every push to `main` and on pull requests. The workflow (
 
 ## Publishing
 
-The CLI is published to npm. Users install it with `npx git-xor` or `npm install -g git-xor`.
+The CLI is published to npm as `@andreimaxim/git-xor`. Users install it with `npx @andreimaxim/git-xor` or `npm install -g @andreimaxim/git-xor`.
 
 The entry point `src/cli.js` has a `#!/usr/bin/env node` shebang so it runs directly with Node.js. Only the `src/` directory is included in the published package (`"files": ["src"]`).
 

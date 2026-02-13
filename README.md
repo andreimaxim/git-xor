@@ -11,6 +11,12 @@ executables named `git-<name>` on `$PATH`.
 > This project was built with the help of LLMs. All code is reviewed and vouched for by
 > a human maintainer before merging. See [Contributing](#contributing) for details.
 
+## Installation
+
+```bash
+npm install -g @andreimaxim/git-xor
+```
+
 ## Usage
 
 ```bash

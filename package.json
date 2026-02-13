@@ -1,8 +1,11 @@
 {
-  "name": "git-xor",
+  "name": "@andreimaxim/git-xor",
   "version": "0.0.4",
   "description": "git-xor CLI",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "git-xor": "src/cli.js"
   },
